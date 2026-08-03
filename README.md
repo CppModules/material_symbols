@@ -1,6 +1,6 @@
 # Material Symbols Outlined — Variable Font
 
-Google Material Symbols 图标字体模块，为 LVGLEx 提供 4000+ 图标支持。
+Google Material Symbols 图标字体资源与码点头文件、字体子集生成脚本。
 
 - **字体**：MaterialSymbolsOutlined-VariableFont
 - **轴**：FILL (0/1) · wght (100~700) · GRAD (-25~200) · opsz (20~48)
@@ -20,15 +20,11 @@ material_symbols/
 └── README.md
 ```
 
-## 构建流程
-
-由 `cmake/icon_font.cmake` 编排，configure 阶段同步执行：
+## 处理流程
 
 ```
-.codepoints ──→ generate_icon_header.py ──→ icon_codepoints.h  (LX_ICON_* 宏)
-                                       ──→ icon_font_data.h    (embed 符号映射)
-
-源码扫描 LX_ICON_* ──→ 码点列表 ──→ subset_icon_font.py ──→ 裁剪后 .ttf ──→ embed
+.codepoints ──→ generate_icon_header.py ──→ icon_codepoints.h
+码点列表 ──→ subset_icon_font.py ──→ 裁剪后的 .ttf
 ```
 
 ## 脚本说明
@@ -36,14 +32,16 @@ material_symbols/
 ### generate_icon_header.py
 
 ```bash
-python generate_icon_header.py <codepoints_file> <output_header>
+python generate_icon_header.py <codepoints_file> <output_header> [--prefix <macro_prefix>]
 ```
 
-将 `name hex` 格式的码点文件转为 C/C++ 宏头文件：
+将 `name hex` 格式的码点文件转为 C/C++ 宏头文件。默认宏前缀为 `MATERIAL_SYMBOLS_ICON`：
 
 ```c
-#define LX_ICON_HOME  0xE88A
+#define MATERIAL_SYMBOLS_ICON_HOME  0xE88A
 ```
+
+使用 `--prefix MY_ICON` 可生成 `MY_ICON_HOME`。
 
 ### subset_icon_font.py
 

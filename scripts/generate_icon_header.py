@@ -3,33 +3,41 @@
 从 Google Material Symbols codepoints 文件生成 C/C++ 码点宏头文件。
 
 用法:
-    python generate_icon_header.py <codepoints_file> <output_header>
+    python generate_icon_header.py <codepoints_file> <output_header> [--prefix <macro_prefix>]
 
 示例:
     python generate_icon_header.py res/MaterialSymbolsOutlined.codepoints include/icon_codepoints.h
+    python generate_icon_header.py res/MaterialSymbolsOutlined.codepoints include/icon_codepoints.h --prefix MY_ICON
 """
 
-import sys
+import argparse
 import os
 import re
+import sys
 
 
-def name_to_macro(name: str) -> str:
-    """图标名转宏名: home -> LX_ICON_HOME, add_circle -> LX_ICON_ADD_CIRCLE"""
+def name_to_macro(name: str, prefix: str) -> str:
+    """图标名转宏名: home -> MATERIAL_SYMBOLS_ICON_HOME"""
     s = name.upper().replace("-", "_")
     # 数字开头加前缀下划线
     if s and s[0].isdigit():
         s = "_" + s
-    return f"LX_ICON_{s}"
+    return f"{prefix}_{s}"
 
 
 def main():
-    if len(sys.argv) < 3:
-        print(f"用法: {sys.argv[0]} <codepoints_file> <output_header>", file=sys.stderr)
+    parser = argparse.ArgumentParser(description="生成 Material Symbols 码点宏头文件")
+    parser.add_argument("codepoints_file")
+    parser.add_argument("output_header")
+    parser.add_argument("--prefix", default="MATERIAL_SYMBOLS_ICON")
+    args = parser.parse_args()
+
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", args.prefix):
+        print(f"错误: 无效的宏前缀: {args.prefix}", file=sys.stderr)
         sys.exit(1)
 
-    codepoints_file = sys.argv[1]
-    output_header = sys.argv[2]
+    codepoints_file = args.codepoints_file
+    output_header = args.output_header
 
     if not os.path.isfile(codepoints_file):
         print(f"错误: 找不到 codepoints 文件: {codepoints_file}", file=sys.stderr)
@@ -48,7 +56,7 @@ def main():
                 continue
             name = parts[0]
             hex_code = parts[1]
-            macro = name_to_macro(name)
+            macro = name_to_macro(name, args.prefix)
 
             # 去重（部分图标有别名，码点相同）
             if macro in seen_macros:
